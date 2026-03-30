@@ -2,5 +2,6 @@
 
 from .base_agent import BaseAgent
 from .football_ingestion_agent import FootballIngestionAgent
+from .football_processing_agent import FootballProcessingAgent
 
-__all__ = ["BaseAgent", "FootballIngestionAgent"]
+__all__ = ["BaseAgent", "FootballIngestionAgent", "FootballProcessingAgent"]

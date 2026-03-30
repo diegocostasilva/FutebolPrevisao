@@ -17,7 +17,7 @@
 --   - quality = 'bronze'
 -- ============================================================
 
-USE CATALOG mcp_platform;
+USE CATALOG football_prediction;
 USE SCHEMA bronze;
 
 -- ── Partidas ──────────────────────────────────────────────────────────────────
@@ -306,4 +306,4 @@ TBLPROPERTIES (
 COMMENT 'Raw league metadata from /leagues including coverage field — weekly refresh';
 
 -- Verificação
-SHOW TABLES IN mcp_platform.bronze;
+SHOW TABLES IN football_prediction.bronze;

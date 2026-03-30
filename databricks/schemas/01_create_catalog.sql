@@ -1,6 +1,6 @@
 -- ============================================================
 -- 01_create_catalog.sql
--- Cria o catálogo mcp_platform e os schemas da arquitetura
+-- Cria o catálogo football_prediction e os schemas da arquitetura
 -- Medallion (Bronze / Silver / Gold / Snapshots).
 --
 -- Executar como: admin do workspace Databricks
@@ -8,10 +8,10 @@
 -- ============================================================
 
 -- Catálogo principal da plataforma
-CREATE CATALOG IF NOT EXISTS mcp_platform
+CREATE CATALOG IF NOT EXISTS football_prediction
   COMMENT 'MCP Agent DAG Platform — Football Prediction Engine';
 
-USE CATALOG mcp_platform;
+USE CATALOG football_prediction;
 
 -- Bronze: dados brutos vindos da API, append-only, schema-on-read
 CREATE SCHEMA IF NOT EXISTS bronze
@@ -30,4 +30,4 @@ CREATE SCHEMA IF NOT EXISTS snapshots
   COMMENT 'dbt snapshots — SCD Type 2 para standings e team_strength.';
 
 -- Verificação
-SHOW SCHEMAS IN mcp_platform;
+SHOW SCHEMAS IN football_prediction;

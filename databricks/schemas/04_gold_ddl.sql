@@ -12,7 +12,7 @@
 -- Geradas pelo dbt (fct_* e dim_*) ou pelas Skills de ML
 -- ============================================================
 
-USE CATALOG mcp_platform;
+USE CATALOG football_prediction;
 USE SCHEMA gold;
 
 -- ── Features de ML por partida (tabela central do modelo) ─────────────────────
@@ -84,7 +84,7 @@ TBLPROPERTIES (
 )
 COMMENT 'ML feature store — one row per fixture. Consumed by MLFeatureStoreLoader skill.';
 
--- OPTIMIZE mcp_platform.gold.fct_match_features ZORDER BY (fixture_id, league_id, match_date);
+-- OPTIMIZE football_prediction.gold.fct_match_features ZORDER BY (fixture_id, league_id, match_date);
 
 -- ── Predições do modelo ML ────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS fct_match_predictions (
@@ -116,7 +116,7 @@ TBLPROPERTIES (
 )
 COMMENT 'ML model predictions — MERGE by fixture_id. Latest prediction per fixture.';
 
--- OPTIMIZE mcp_platform.gold.fct_match_predictions ZORDER BY (fixture_id, model_version);
+-- OPTIMIZE football_prediction.gold.fct_match_predictions ZORDER BY (fixture_id, model_version);
 
 -- ── Forma dos times ───────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS fct_team_form (
@@ -234,4 +234,4 @@ TBLPROPERTIES (
 COMMENT 'League dimension — MERGE by (league_id, season). Weekly refresh.';
 
 -- Verificação
-SHOW TABLES IN mcp_platform.gold;
+SHOW TABLES IN football_prediction.gold;

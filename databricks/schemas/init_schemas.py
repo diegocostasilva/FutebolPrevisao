@@ -1,5 +1,5 @@
 """
-init_schemas.py — Inicializa o catálogo mcp_platform e todas as tabelas Delta Lake.
+init_schemas.py — Inicializa o catálogo football_prediction e todas as tabelas Delta Lake.
 
 Executa os 4 arquivos DDL em ordem usando o Databricks SQL Connector.
 
@@ -87,7 +87,7 @@ def main(files: list[str] | None = None) -> None:
     targets = files or _DDL_FILES
 
     print(f"\n{'='*60}")
-    print("  Databricks Schema Initializer — mcp_platform")
+    print("  Databricks Schema Initializer — football_prediction")
     print(f"  Host: {os.environ.get('DATABRICKS_HOST', '?')}")
     print(f"{'='*60}\n")
 

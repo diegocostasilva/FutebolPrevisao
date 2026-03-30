@@ -13,7 +13,7 @@
 -- ZORDER: colunas de filtro frequente (max 4)
 -- ============================================================
 
-USE CATALOG mcp_platform;
+USE CATALOG football_prediction;
 USE SCHEMA silver;
 
 -- ── Partidas (tabela central) ─────────────────────────────────────────────────
@@ -49,7 +49,7 @@ TBLPROPERTIES (
 COMMENT 'Cleaned fixtures — one row per match. MERGE upsert by fixture_id.';
 
 -- OPTIMIZE após carga inicial:
--- OPTIMIZE mcp_platform.silver.football_fixtures ZORDER BY (fixture_id, league_id);
+-- OPTIMIZE football_prediction.silver.football_fixtures ZORDER BY (fixture_id, league_id);
 
 -- ── Estatísticas de partida ───────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS football_match_statistics (
@@ -86,7 +86,7 @@ TBLPROPERTIES (
 )
 COMMENT 'Pivoted match statistics — one row per (fixture_id, team_id). MERGE by PK.';
 
--- OPTIMIZE mcp_platform.silver.football_match_statistics ZORDER BY (fixture_id, team_id);
+-- OPTIMIZE football_prediction.silver.football_match_statistics ZORDER BY (fixture_id, team_id);
 
 -- ── Eventos de partida ────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS football_match_events (
@@ -112,7 +112,7 @@ TBLPROPERTIES (
 )
 COMMENT 'Normalized match events — goals, cards, substitutions.';
 
--- OPTIMIZE mcp_platform.silver.football_match_events ZORDER BY (fixture_id, team_id);
+-- OPTIMIZE football_prediction.silver.football_match_events ZORDER BY (fixture_id, team_id);
 
 -- ── Odds pré-jogo ─────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS football_odds_prematch (
@@ -136,7 +136,7 @@ TBLPROPERTIES (
 )
 COMMENT 'Pre-match odds — Match Winner market (1X2). MERGE by (fixture_id, bookmaker_name).';
 
--- OPTIMIZE mcp_platform.silver.football_odds_prematch ZORDER BY (fixture_id, bookmaker_name);
+-- OPTIMIZE football_prediction.silver.football_odds_prematch ZORDER BY (fixture_id, bookmaker_name);
 
 -- ── Classificação ─────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS football_standings (
@@ -166,7 +166,7 @@ TBLPROPERTIES (
 )
 COMMENT 'League standings — MERGE by (league_id, team_id, season).';
 
--- OPTIMIZE mcp_platform.silver.football_standings ZORDER BY (league_id, season);
+-- OPTIMIZE football_prediction.silver.football_standings ZORDER BY (league_id, season);
 
 -- ── Lesões ────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS football_injuries (
@@ -193,4 +193,4 @@ TBLPROPERTIES (
 COMMENT 'Injuries per player/fixture — MERGE by (player_id, fixture_id).';
 
 -- Verificação
-SHOW TABLES IN mcp_platform.silver;
+SHOW TABLES IN football_prediction.silver;

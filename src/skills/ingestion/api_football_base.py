@@ -202,7 +202,7 @@ class APIFootballBaseSkill(MCPSkill):
 
         df = spark.createDataFrame(rows)
         df.write.format("delta").mode("append").saveAsTable(
-            f"mcp_platform.bronze.{table_name}"
+            f"football_prediction.bronze.{table_name}"
         )
 
         logger.bind(skill=self.name, run_id=context.run_id).info(

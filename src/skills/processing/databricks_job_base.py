@@ -20,7 +20,12 @@ from typing import Any
 
 import structlog
 from databricks.sdk import WorkspaceClient
-from databricks.sdk.service.jobs import RunLifeCycleState, RunResultState
+from databricks.sdk.service.jobs import (
+    NotebookTask,
+    RunLifeCycleState,
+    RunResultState,
+    SubmitTask,
+)
 
 from src.core.context import ExecutionContext
 from src.core.exceptions import MCPExecutionError, MCPValidationError
@@ -106,35 +111,28 @@ class DatabricksJobBaseSkill(MCPSkill):
             token=context.databricks_token,
         )
 
-        # Determina cluster: usa existing cluster se disponível, senão job cluster
-        cluster_id = context.params.get("databricks_cluster_id")
-        if cluster_id:
-            task_config = {
-                "existing_cluster_id": cluster_id,
-                "notebook_task": {
-                    "notebook_path": self.notebook_path,
-                    "base_parameters": params,
-                },
-            }
-        else:
-            # Serverless / job cluster padrão do workspace
-            task_config = {
-                "notebook_task": {
-                    "notebook_path": self.notebook_path,
-                    "base_parameters": params,
-                },
-            }
-
         log.info(
             "databricks_job_submit",
             notebook=self.notebook_path,
             params=params,
         )
 
+        # Determina cluster: usa existing cluster se disponível, senão serverless
+        cluster_id = context.params.get("databricks_cluster_id") or ""
+        notebook_task = NotebookTask(
+            notebook_path=self.notebook_path,
+            base_parameters=params,
+        )
+        task = SubmitTask(
+            task_key=self.name,
+            notebook_task=notebook_task,
+            existing_cluster_id=cluster_id if cluster_id else None,
+        )
+
         try:
             run = ws.jobs.submit(
                 run_name=f"{self.name}_{context.run_id[:8]}",
-                tasks=[{"task_key": self.name, **task_config}],
+                tasks=[task],
             )
             run_id = run.run_id
             log.info("databricks_job_submitted", run_id=run_id)

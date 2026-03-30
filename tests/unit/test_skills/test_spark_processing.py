@@ -190,7 +190,7 @@ class TestDatabricksEventsNormalize:
         # Verifica que fixture_ids foi incluído nos parâmetros do notebook
         call_kwargs = ws.jobs.submit.call_args
         tasks = call_kwargs.kwargs["tasks"]
-        nb_params = tasks[0]["notebook_task"]["base_parameters"]
+        nb_params = tasks[0].notebook_task.base_parameters
         assert "fixture_ids" in nb_params
         assert nb_params["fixture_ids"] == "101,202"
 
@@ -283,7 +283,7 @@ class TestDatabricksOptimize:
         assert result.success is True
         call_kwargs = ws.jobs.submit.call_args
         tasks = call_kwargs.kwargs["tasks"]
-        nb_params = tasks[0]["notebook_task"]["base_parameters"]
+        nb_params = tasks[0].notebook_task.base_parameters
         assert nb_params.get("layer") == "silver"
 
     def test_registered_in_registry(self):
@@ -307,7 +307,7 @@ class TestDatabricksJobBaseSkillBehaviors:
             DatabricksFixturesFlatten().execute(ctx_with_databricks)
 
         tasks = ws.jobs.submit.call_args.kwargs["tasks"]
-        params = tasks[0]["notebook_task"]["base_parameters"]
+        params = tasks[0].notebook_task.base_parameters
         assert params["catalog"] == "football_prediction"
 
     def test_always_sends_run_id(self, ctx_with_databricks):
@@ -321,7 +321,7 @@ class TestDatabricksJobBaseSkillBehaviors:
             DatabricksFixturesFlatten().execute(ctx_with_databricks)
 
         tasks = ws.jobs.submit.call_args.kwargs["tasks"]
-        params = tasks[0]["notebook_task"]["base_parameters"]
+        params = tasks[0].notebook_task.base_parameters
         assert "run_id" in params
         assert params["run_id"] == ctx_with_databricks.run_id
 

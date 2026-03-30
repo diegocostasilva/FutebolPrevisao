@@ -67,8 +67,21 @@ def _build_context(dag_run, task_instance):
     league_ids_raw = Variable.get("LEAGUE_IDS", default_var="71")
     league_ids = [int(x.strip()) for x in league_ids_raw.split(",") if x.strip()]
 
-    override_mode = (dag_run.conf or {}).get("mode", "incremental")
-    ingestion_date = (dag_run.conf or {}).get("ingestion_date", "")
+    conf = dag_run.conf or {}
+    override_mode = conf.get("mode", "incremental")
+
+    # Params base com defaults das Airflow Variables
+    params = {
+        "league_ids": league_ids,
+        "season": int(Variable.get("SEASON", default_var="2025")),
+        "mode": override_mode,
+        "ingestion_date": conf.get("ingestion_date", ""),
+        "databricks_cluster_id": Variable.get("DATABRICKS_CLUSTER_ID", default_var=""),
+    }
+    # Repassa todos os keys do dag_run.conf para permitir backfill com from_date/to_date
+    for key in ("from_date", "to_date", "fixture_ids"):
+        if key in conf:
+            params[key] = conf[key]
 
     return ExecutionContext(
         run_id=dag_run.run_id,
@@ -83,15 +96,7 @@ def _build_context(dag_run, task_instance):
             default_var="/sql/1.0/warehouses/a15a748006670d03",
         ),
         api_football_key=Variable.get("API_FOOTBALL_KEY"),
-        params={
-            "league_ids": league_ids,
-            "season": int(Variable.get("SEASON", default_var="2025")),
-            "mode": override_mode,
-            "ingestion_date": ingestion_date,
-            "databricks_cluster_id": Variable.get(
-                "DATABRICKS_CLUSTER_ID", default_var=""
-            ),
-        },
+        params=params,
     )
 
 

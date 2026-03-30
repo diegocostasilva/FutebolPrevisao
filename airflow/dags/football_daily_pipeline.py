@@ -205,7 +205,7 @@ with DAG(
     start_date=datetime(2025, 1, 1),
     catchup=False,
     max_active_runs=1,
-    execution_timeout=timedelta(hours=4),
+    dagrun_timeout=timedelta(hours=4),
     default_args=_DEFAULT_ARGS,
     tags=["football", "production", "daily"],
     on_failure_callback=_on_failure_callback,

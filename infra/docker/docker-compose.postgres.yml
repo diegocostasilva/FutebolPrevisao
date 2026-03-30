@@ -1,0 +1,51 @@
+services:
+  postgres-airflow:
+    image: postgres:16
+    container_name: postgres-airflow
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: airflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_airflow_data:/var/lib/postgresql/data
+    networks:
+      - mcp_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  postgres-serving:
+    image: postgres:16
+    container_name: postgres-serving
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: serving
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_serving_data:/var/lib/postgresql/data
+      - ./infra/postgres/init-serving.sql:/docker-entrypoint-initdb.d/init-serving.sql
+    networks:
+      - mcp_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d serving"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_airflow_data:
+    name: mcp_postgres_airflow_data
+  postgres_serving_data:
+    name: mcp_postgres_serving_data
+
+networks:
+  mcp_network:
+    external: true

@@ -31,11 +31,6 @@ class APIFootballStatisticsExtractor(APIFootballBaseSkill):
 
     def validate(self, context: ExecutionContext) -> bool:
         super().validate(context)
-        if not context.get_artifact("fixture_ids") and not context.params.get("fixture_ids"):
-            raise MCPValidationError(
-                "fixture_ids ausente nos artifacts e nos params",
-                skill_name=self.name,
-            )
         return True
 
     def execute(self, context: ExecutionContext) -> SkillResult:
@@ -45,6 +40,8 @@ class APIFootballStatisticsExtractor(APIFootballBaseSkill):
             context.get_artifact("fixture_ids")
             or context.params.get("fixture_ids", [])
         )
+        if not fixture_ids:
+            return SkillResult.ok("Sem fixture_ids no período — nada a extrair", rows_affected=0)
 
         log.info("statistics_extraction_start", fixtures=len(fixture_ids))
         total = 0

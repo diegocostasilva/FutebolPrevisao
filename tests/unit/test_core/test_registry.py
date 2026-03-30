@@ -33,11 +33,16 @@ def _make_skill(skill_name: str, skill_version: str = "1.0.0") -> MCPSkill:
 
 @pytest.fixture(autouse=True)
 def _clean_registry():
-    """Reset registry state before each test to avoid cross-test pollution."""
+    """
+    Isola o estado do registry para cada teste deste módulo.
+    Salva o estado anterior e restaura ao final para não afetar outros módulos.
+    """
     registry = SkillRegistry()
+    saved = dict(registry._skills)
     registry._skills.clear()
     yield
     registry._skills.clear()
+    registry._skills.update(saved)
 
 
 # ── Singleton ─────────────────────────────────────────────────────────────────

@@ -166,11 +166,12 @@ class APIFootballBaseSkill(MCPSkill):
         """
         Persiste records como JSON bruto em tabela Delta Bronze.
 
-        Adiciona metadados de ingestão obrigatórios:
-            _ingestion_date, _ingestion_ts, _batch_id, _source_endpoint
+        Estratégia de escrita:
+          1. SparkSession disponível no contexto → saveAsTable (testes/Databricks Connect)
+          2. Sem SparkSession → INSERT via Databricks SQL Connector (produção/Airflow)
 
-        Returns:
-            Número de registros gravados.
+        Adiciona metadados obrigatórios: _ingestion_date, _ingestion_ts,
+        _batch_id, _source_endpoint.
         """
         if not records:
             return 0
@@ -180,35 +181,58 @@ class APIFootballBaseSkill(MCPSkill):
         batch_id = str(uuid.uuid4())
         ingestion_date = date.today().isoformat()
         ingestion_ts = datetime.now(UTC).isoformat()
+        full_table = f"football_prediction.bronze.{table_name}"
 
         rows = [
-            {
-                "payload": json.dumps(record),
-                "endpoint": endpoint,
-                "_ingestion_date": ingestion_date,
-                "_ingestion_ts": ingestion_ts,
-                "_batch_id": batch_id,
-                "_source_endpoint": endpoint,
-            }
+            (
+                json.dumps(record),
+                endpoint,
+                ingestion_date,
+                ingestion_ts,
+                batch_id,
+                endpoint,
+            )
             for record in records
         ]
 
+        log = logger.bind(skill=self.name, run_id=context.run_id)
+
         spark = context.spark_session
-        if spark is None:
-            raise MCPExecutionError(
-                "SparkSession ausente no contexto — não é possível gravar na Bronze",
-                skill_name=self.name,
+        if spark is not None:
+            # Caminho Spark (testes ou Databricks Connect)
+            from pyspark.sql import Row
+            df = spark.createDataFrame(
+                [Row(payload=r[0], endpoint=r[1], _ingestion_date=r[2],
+                     _ingestion_ts=r[3], _batch_id=r[4], _source_endpoint=r[5])
+                 for r in rows]
             )
+            df.write.format("delta").mode("append").saveAsTable(full_table)
+        else:
+            # Caminho produção: INSERT via SQL Warehouse (sem cluster Spark)
+            if not context.databricks_host or not context.databricks_token:
+                raise MCPExecutionError(
+                    "databricks_host/token ausentes — não é possível gravar na Bronze",
+                    skill_name=self.name,
+                )
+            http_path = (
+                context.databricks_http_path
+                or f"/sql/1.0/warehouses/a15a748006670d03"
+            )
+            from databricks import sql as dbsql
 
-        df = spark.createDataFrame(rows)
-        df.write.format("delta").mode("append").saveAsTable(
-            f"football_prediction.bronze.{table_name}"
-        )
+            insert_sql = (
+                f"INSERT INTO {full_table} "
+                "(payload, endpoint, _ingestion_date, _ingestion_ts, _batch_id, _source_endpoint) "
+                "VALUES (?, ?, ?, ?, ?, ?)"
+            )
+            host = context.databricks_host.replace("https://", "").rstrip("/")
+            with dbsql.connect(
+                server_hostname=host,
+                http_path=http_path,
+                access_token=context.databricks_token,
+            ) as conn:
+                with conn.cursor() as cursor:
+                    cursor.executemany(insert_sql, rows)
 
-        logger.bind(skill=self.name, run_id=context.run_id).info(
-            "bronze_write_done",
-            table=table_name,
-            rows=len(rows),
-            batch_id=batch_id,
-        )
+        log.info("bronze_write_done", table=table_name, rows=len(rows), batch_id=batch_id)
         return len(rows)

@@ -29,7 +29,6 @@ season        = int(dbutils.widgets.get("season"))
 ingestion_date = dbutils.widgets.get("ingestion_date") or str(datetime.utcnow().date())
 
 spark = SparkSession.builder.getOrCreate()
-spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", "true")
 
 print(f"run_id={run_id} | catalog={catalog} | ingestion_date={ingestion_date}")
 

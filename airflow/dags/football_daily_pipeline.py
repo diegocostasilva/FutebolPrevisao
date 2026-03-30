@@ -78,6 +78,10 @@ def _build_context(dag_run, task_instance):
         environment=Variable.get("ENVIRONMENT", default_var="dev"),
         databricks_host=Variable.get("DATABRICKS_HOST"),
         databricks_token=Variable.get("DATABRICKS_TOKEN"),
+        databricks_http_path=Variable.get(
+            "DATABRICKS_HTTP_PATH",
+            default_var="/sql/1.0/warehouses/a15a748006670d03",
+        ),
         api_football_key=Variable.get("API_FOOTBALL_KEY"),
         params={
             "league_ids": league_ids,

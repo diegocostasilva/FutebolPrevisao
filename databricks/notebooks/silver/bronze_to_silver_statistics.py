@@ -24,7 +24,6 @@ catalog        = dbutils.widgets.get("catalog")
 ingestion_date = dbutils.widgets.get("ingestion_date") or str(datetime.utcnow().date())
 
 spark = SparkSession.builder.getOrCreate()
-spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", "true")
 
 # COMMAND ----------
 BRONZE = f"{catalog}.bronze.football_statistics_raw"

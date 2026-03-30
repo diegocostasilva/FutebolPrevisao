@@ -147,9 +147,30 @@ class TestWriteToBronze:
         mock_context.spark_session.createDataFrame.assert_called_once()
         mock_df.write.format.assert_called_with("delta")
 
-    def test_raises_without_spark_session(self, skill, empty_context):
-        with pytest.raises(MCPExecutionError, match="SparkSession"):
+    def test_raises_without_spark_or_databricks_creds(self, skill, empty_context):
+        """Sem SparkSession e sem credenciais Databricks → MCPExecutionError."""
+        with pytest.raises(MCPExecutionError, match="databricks_host"):
             skill._write_to_bronze([{"id": 1}], "table", "ep", empty_context)
+
+    def test_uses_sql_connector_when_no_spark(self, skill, mock_context):
+        """Sem SparkSession mas com credenciais → usa SQL Connector."""
+        mock_context.spark_session = None
+        mock_context.databricks_host = "https://dbc-test.cloud.databricks.com"
+        mock_context.databricks_token = "dapiTEST"
+        mock_context.databricks_http_path = "/sql/1.0/warehouses/abc"
+
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_conn.__enter__ = MagicMock(return_value=mock_conn)
+        mock_conn.__exit__ = MagicMock(return_value=False)
+        mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cursor)
+        mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+
+        with patch("databricks.sql.connect", return_value=mock_conn):
+            result = skill._write_to_bronze([{"id": 1}], "test_table", "ep", mock_context)
+
+        assert result == 1
+        mock_cursor.executemany.assert_called_once()
 
     def test_adds_metadata_fields(self, skill, mock_context):
         records = [{"id": 1}]

@@ -58,6 +58,7 @@ class ExecutionContext:
     pg_connection: Any | None = field(default=None, repr=False)
     databricks_token: str = field(default="", repr=False)
     databricks_host: str = ""
+    databricks_http_path: str = ""  # /sql/1.0/warehouses/<id>
     api_football_key: str = field(default="", repr=False)
 
     # ── Dynamic data ──────────────────────────────────────────────────────────
